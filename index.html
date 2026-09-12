@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nexus ASCII Color Editor</title>
+<style>
+  body{font-family:monospace;background:#0b0e16;color:#c9d6e3;margin:0;padding:16px}
+  h1{color:#6cb6e2;font-size:18px}
+  #palette{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+  .sw{width:32px;height:32px;border:2px solid #333;cursor:pointer;border-radius:4px}
+  .sw.sel{outline:3px solid #fff}
+  #grid{line-height:1;white-space:pre;background:#111;padding:12px;border-radius:8px;overflow:auto;user-select:none}
+  .ch{cursor:pointer;padding:1px 2px;border-radius:2px}
+  .ch:hover{outline:1px dashed #6cb6e2}
+  #out{width:100%;height:180px;background:#111;color:#6cb6e2;border:1px solid #333;border-radius:8px;padding:8px;white-space:pre}
+  button{margin:6px 6px 6px 0;padding:8px 14px;background:#1793d1;color:#fff;border:0;border-radius:6px;cursor:pointer}
+  button:hover{background:#1da1e6}
+  a{color:#6cb6e2}
+</style>
+</head>
+<body>
+<h1>Nexus ASCII — Karakter Karakter Renk Editörü</h1>
+<p>Bir renge tıkla, sonra ASCII’deki herhangi bir karaktere tıkla. <code>${c1}</code>…<code>${c6}</code> otomatik eklenir. <code>ascii_colors</code> paleti aşağıda.</p>
+
+<div id="palette"></div>
+<div style="margin:8px 0">
+  <label>ascii_colors: <input id="pal" value="4,6,1,2,3,5" style="width:200px;background:#111;color:#fff;border:1px solid #333;padding:6px;border-radius:6px"></label>
+  <span id="palPreview" style="margin-left:8px"></span>
+</div>
+
+<pre id="grid"></pre>
+
+<div style="margin:12px 0">
+  <button id="export">Export (kopyala)</button>
+  <button id="copyCfg">config.conf satırını kopyala</button>
+  <button id="reset">Sıfırla</button>
+  <a href="#" id="dl" download="nexus" style="margin-left:12px">nexus dosyasını indir</a>
+</div>
+
+<h3>Çıktı (neofetch ascii dosyası)</h3>
+<textarea id="out" readonly></textarea>
+<pre id="cfg" style="background:#111;padding:8px;border-radius:8px"></pre>
+
+<script>
+const raw = `               +++++++    ++++=====
+             +++++++++++    +++=======
+           ++++++++++++++      +++=====
+           ++++++++   +++++      ++=====
+          +++++++       ++++      +++===
+          ++++++         +++      ++++==
+          +++++      ++   +++     ++++++
+          ++++++      ++          ++++++
+          ++++++      ++++       +++++++
+          +++++++      +++++  +++++++++
+           ++++++++     ++++++++++++++
+            ++++++++++    +++++++++++
+               ++++++++     +++++++`;
+
+const colors = ["#000","#c00","#0c0","#cc0","#00c","#c0c","#0cc","#ccc","#555","#f55","#5f5","#ff5","#55f","#f5f","#5ff","#fff"];
+let pal = [4,6,1,2,3,5];
+let sel = 0;
+const grid = document.getElementById('grid');
+const out = document.getElementById('out');
+const palInput = document.getElementById('pal');
+const palPreview = document.getElementById('palPreview');
+const cfg = document.getElementById('cfg');
+
+function buildPalette(){
+  const p = document.getElementById('palette');
+  p.innerHTML='';
+  pal.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className='sw'+(i===sel?' sel':'');
+    d.style.background=colors[c]||'#333';
+    d.title=`c${i+1} = ${c} (${colors[c]})`;
+    d.onclick=()=>{sel=i; buildPalette();};
+    const l=document.createElement('div');
+    l.textContent=`c${i+1}:${c}`; l.style.cssText='font-size:10px;text-align:center;color:#fff';
+    const w=document.createElement('div'); w.appendChild(d); w.appendChild(l);
+    p.appendChild(w);
+  });
+  palPreview.textContent = pal.map((c,i)=>`c${i+1}:${c}`).join(' ');
+  cfg.textContent = `ascii_colors=(${pal.join(' ')})  # ~/.config/neofetch/config.conf`;
+}
+
+let cells = [];
+function buildGrid(){
+  grid.innerHTML='';
+  cells=[];
+  raw.split('\n').forEach((line,y)=>{
+    const row=document.createElement('div');
+    [...line].forEach((ch,x)=>{
+      const s=document.createElement('span');
+      s.className='ch';
+      s.textContent=ch===' ' ? '\u00A0' : ch;
+      s.dataset.c = pal[0];
+      s.style.color = colors[pal[0]];
+      s.onclick=()=>{
+        s.dataset.c = pal[sel];
+        s.style.color = colors[pal[sel]];
+        exportOut();
+      };
+      row.appendChild(s);
+      cells.push(s);
+    });
+    grid.appendChild(row);
+  });
+  exportOut();
+}
+
+function exportOut(){
+  let res='';
+  let cur=null;
+  let lastLineHadContent=false;
+  const rows = [...grid.children];
+  rows.forEach(row=>{
+    let line='';
+    let curC=null;
+    [...row.children].forEach(span=>{
+      const c = span.dataset.c;
+      const ch = span.textContent === '\u00A0' ? ' ' : span.textContent;
+      if(c!==curC){
+        line += `\${c${parseInt(c)%6+1}}`;
+        // map actual color index to c1..c6 via pal index
+        // find pal index of this color
+        let idx = pal.indexOf(parseInt(c));
+        if(idx===-1) idx=0;
+        line = line.slice(0, -(`\${c${curC}}`.length)) + `\${c${idx+1}}`;
+        curC=c;
+      }
+      line+=ch;
+    });
+    // simpler: rebuild per char with pal mapping
+  });
+  // rebuild properly char by char with pal mapping
+  let outStr='';
+  rows.forEach(row=>{
+    let line='';
+    let curIdx=null;
+    [...row.children].forEach(span=>{
+      const col = parseInt(span.dataset.c);
+      let idx = pal.indexOf(col);
+      if(idx===-1) idx=0;
+      const tag = `\${c${idx+1}}`;
+      if(idx!==curIdx){
+        line+=tag;
+        curIdx=idx;
+      }
+      line+= span.textContent==='\\u00A0'?' ':span.textContent;
+    });
+    // rtrim trailing spaces but keep leading
+    outStr+= line.replace(/\s+$/,'') + '\n';
+  });
+  outStr += '${c2}\n${c2}  Nexus Linux - Pure Arch\n${c2}  -----------------------\n';
+  out.value = outStr;
+  document.getElementById('dl').href = 'data:text/plain;charset=utf-8,'+encodeURIComponent(outStr);
+}
+
+document.getElementById('export').onclick=()=>{ out.select(); document.execCommand('copy'); alert('Kopyalandı! /usr/share/neofetch/ascii/distro/nexus içine yapıştır'); };
+document.getElementById('copyCfg').onclick=()=>{ navigator.clipboard.writeText(`ascii_colors=(${pal.join(' ')})`); alert('config satırı kopyalandı'); };
+document.getElementById('reset').onclick=()=>{ buildGrid(); };
+palInput.oninput=()=>{
+  const v = palInput.value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)&&n>=0&&n<16);
+  if(v.length>=1){ pal=v.slice(0,6); while(pal.length<6) pal.push(pal[0]); buildPalette(); exportOut(); }
+};
+buildPalette();
+buildGrid();
+</script>
+</body>
+</html>
