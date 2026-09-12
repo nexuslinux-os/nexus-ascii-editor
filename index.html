@@ -3,44 +3,92 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nexus ASCII Color Editor</title>
+<title>Nexus ASCII Color Editor — Material 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  body{font-family:monospace;background:#0b0e16;color:#c9d6e3;margin:0;padding:16px}
-  h1{color:#6cb6e2;font-size:18px}
-  #palette{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
-  .sw{width:32px;height:32px;border:2px solid #333;cursor:pointer;border-radius:4px}
-  .sw.sel{outline:3px solid #fff}
-  #grid{line-height:1;white-space:pre;background:#111;padding:12px;border-radius:8px;overflow:auto;user-select:none}
-  .ch{cursor:pointer;padding:1px 2px;border-radius:2px}
-  .ch:hover{outline:1px dashed #6cb6e2}
-  #out{width:100%;height:180px;background:#111;color:#6cb6e2;border:1px solid #333;border-radius:8px;padding:8px;white-space:pre}
-  button{margin:6px 6px 6px 0;padding:8px 14px;background:#1793d1;color:#fff;border:0;border-radius:6px;cursor:pointer}
-  button:hover{background:#1da1e6}
-  a{color:#6cb6e2}
+  :root{
+    --md-sys-color-primary:#6cb6e2;
+    --md-sys-color-on-primary:#00344f;
+    --md-sys-color-primary-container:#004c6d;
+    --md-sys-color-on-primary-container:#c0e8ff;
+    --md-sys-color-surface:#0b0e16;
+    --md-sys-color-surface-container:#1d2028;
+    --md-sys-color-surface-container-high:#272a33;
+    --md-sys-color-on-surface:#e2e2e6;
+    --md-sys-color-on-surface-variant:#c4c6d0;
+    --md-sys-color-outline:#8c9199;
+    --md-sys-color-outline-variant:#43474e;
+    --md-sys-elevation-1:0 1px 2px rgba(0,0,0,.3),0 1px 3px 1px rgba(0,0,0,.15);
+    --md-sys-elevation-2:0 1px 2px rgba(0,0,0,.3),0 2px 6px 2px rgba(0,0,0,.15);
+  }
+  *{box-sizing:border-box}
+  body{font-family:'Roboto',system-ui,sans-serif;background:var(--md-sys-color-surface);color:var(--md-sys-color-on-surface);margin:0;padding:24px}
+  h1{font-size:22px;font-weight:500;letter-spacing:0;margin:0 0 4px;color:var(--md-sys-color-primary)}
+  .subtitle{color:var(--md-sys-color-on-surface-variant);font-size:14px;margin:0 0 16px}
+  .card{background:var(--md-sys-color-surface-container);border-radius:24px;padding:20px;margin:16px 0;box-shadow:var(--md-sys-elevation-1)}
+  .card h2{font-size:14px;font-weight:500;letter-spacing:.1px;color:var(--md-sys-color-primary);margin:0 0 12px;text-transform:uppercase}
+  #palette{display:flex;gap:12px;flex-wrap:wrap}
+  .sw-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .sw{width:48px;height:48px;border-radius:16px;border:2px solid transparent;cursor:pointer;box-shadow:var(--md-sys-elevation-1);transition:transform .15s, outline .15s}
+  .sw:hover{transform:scale(1.05)}
+  .sw.sel{outline:3px solid var(--md-sys-color-primary);outline-offset:2px;border-color:var(--md-sys-color-on-primary)}
+  .sw-label{font-family:'Roboto Mono',monospace;font-size:11px;color:var(--md-sys-color-on-surface-variant)}
+  .field{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .field label{font-size:14px;font-weight:500}
+  .field input{font-family:'Roboto Mono',monospace;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface);border:1px solid var(--md-sys-color-outline-variant);border-radius:12px;padding:10px 14px;min-width:220px}
+  .field input:focus{outline:2px solid var(--md-sys-color-primary);border-color:transparent}
+  #grid{font-family:'Roboto Mono',monospace;line-height:1.2;white-space:pre;background:var(--md-sys-color-surface-container-high);padding:20px;border-radius:24px;overflow:auto;user-select:none;border:1px solid var(--md-sys-color-outline-variant);box-shadow:var(--md-sys-elevation-1)}
+  .ch{cursor:pointer;padding:2px 3px;border-radius:6px;transition:background .1s, outline .1s;font-size:14px}
+  .ch:hover{outline:1px dashed var(--md-sys-color-primary);background:rgba(108,182,226,.15)}
+  .ch.dragging{outline:1px solid var(--md-sys-color-primary)}
+  #out{width:100%;height:200px;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-primary);border:1px solid var(--md-sys-color-outline-variant);border-radius:16px;padding:14px;white-space:pre;font-family:'Roboto Mono',monospace;font-size:12px;resize:vertical}
+  #out:focus{outline:2px solid var(--md-sys-color-primary)}
+  .btn{font-family:'Roboto',sans-serif;font-size:14px;font-weight:500;letter-spacing:.1px;padding:12px 24px;border-radius:20px;border:0;cursor:pointer;transition:background .15s, box-shadow .15s}
+  .btn-filled{background:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);box-shadow:var(--md-sys-elevation-1)}
+  .btn-filled:hover{background:#7bc0e8;box-shadow:var(--md-sys-elevation-2)}
+  .btn-tonal{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}
+  .btn-tonal:hover{filter:brightness(1.1)}
+  .btn-text{color:var(--md-sys-color-primary);background:transparent}
+  .btn-text:hover{background:rgba(108,182,226,.12)}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+  a{color:var(--md-sys-color-primary);text-decoration:none;font-weight:500}
+  a:hover{text-decoration:underline}
+  code{background:var(--md-sys-color-surface-container-high);padding:2px 6px;border-radius:8px;font-family:'Roboto Mono',monospace;font-size:12px}
+  .hint{font-size:12px;color:var(--md-sys-color-on-surface-variant);margin-top:8px}
 </style>
 </head>
 <body>
-<h1>Nexus ASCII — Karakter Karakter Renk Editörü</h1>
-<p>Bir renge tıkla, sonra ASCII’deki herhangi bir karaktere tıkla. <code>${c1}</code>…<code>${c6}</code> otomatik eklenir. <code>ascii_colors</code> paleti aşağıda.</p>
+<h1>Nexus ASCII — Material 3 Color Editor</h1>
+<p class="subtitle">Renge tıkla, sonra sürükleyerek boya. <code>${c1}</code>…<code>${c6}</code> otomatik eklenir.</p>
 
-<div id="palette"></div>
-<div style="margin:8px 0">
-  <label>ascii_colors: <input id="pal" value="4,6,1,2,3,5" style="width:200px;background:#111;color:#fff;border:1px solid #333;padding:6px;border-radius:6px"></label>
-  <span id="palPreview" style="margin-left:8px"></span>
+<div class="card">
+  <h2>Palet</h2>
+  <div id="palette"></div>
+  <div class="field">
+    <label for="pal">ascii_colors</label>
+    <input id="pal" value="4,6,1,2,3,5">
+    <span id="palPreview" style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--md-sys-color-on-surface-variant)"></span>
+  </div>
+  <p class="hint">İpucu: Bir renge tıklayıp ASCII üzerinde sürükleyerek boyayabilirsin. Dokunmatik için basılı tutup gezdir.</p>
 </div>
 
-<pre id="grid"></pre>
-
-<div style="margin:12px 0">
-  <button id="export">Export (kopyala)</button>
-  <button id="copyCfg">config.conf satırını kopyala</button>
-  <button id="reset">Sıfırla</button>
-  <a href="#" id="dl" download="nexus" style="margin-left:12px">nexus dosyasını indir</a>
+<div class="card">
+  <h2>ASCII Canvas — Sürükle & Boya</h2>
+  <pre id="grid"></pre>
 </div>
 
-<h3>Çıktı (neofetch ascii dosyası)</h3>
-<textarea id="out" readonly></textarea>
-<pre id="cfg" style="background:#111;padding:8px;border-radius:8px"></pre>
+<div class="btn-row">
+  <button class="btn btn-filled" id="export">Export — Kopyala</button>
+  <button class="btn btn-tonal" id="copyCfg">config.conf satırını kopyala</button>
+  <button class="btn btn-text" id="reset">Sıfırla</button>
+  <a href="#" id="dl" download="nexus" class="btn btn-text">⬇ nexus dosyasını indir</a>
+</div>
+
+<div class="card">
+  <h2>Çıktı — neofetch ascii dosyası</h2>
+  <textarea id="out" readonly></textarea>
+  <pre id="cfg" style="background:var(--md-sys-color-surface-container-high);padding:12px;border-radius:16px;margin-top:12px;font-family:'Roboto Mono',monospace;font-size:12px"></pre>
+</div>
 
 <script>
 const raw = `               +++++++    ++++=====
@@ -60,6 +108,7 @@ const raw = `               +++++++    ++++=====
 const colors = ["#000","#c00","#0c0","#cc0","#00c","#c0c","#0cc","#ccc","#555","#f55","#5f5","#ff5","#55f","#f5f","#5ff","#fff"];
 let pal = [4,6,1,2,3,5];
 let sel = 0;
+let isDragging = false;
 const grid = document.getElementById('grid');
 const out = document.getElementById('out');
 const palInput = document.getElementById('pal');
@@ -76,64 +125,56 @@ function buildPalette(){
     d.title=`c${i+1} = ${c} (${colors[c]})`;
     d.onclick=()=>{sel=i; buildPalette();};
     const l=document.createElement('div');
-    l.textContent=`c${i+1}:${c}`; l.style.cssText='font-size:10px;text-align:center;color:#fff';
-    const w=document.createElement('div'); w.appendChild(d); w.appendChild(l);
+    l.textContent=`c${i+1}:${c}`; l.className='sw-label';
+    const w=document.createElement('div'); w.className='sw-wrap';
+    w.appendChild(d); w.appendChild(l);
     p.appendChild(w);
   });
   palPreview.textContent = pal.map((c,i)=>`c${i+1}:${c}`).join(' ');
   cfg.textContent = `ascii_colors=(${pal.join(' ')})  # ~/.config/neofetch/config.conf`;
 }
 
-let cells = [];
+function paint(span){
+  span.dataset.c = pal[sel];
+  span.style.color = colors[pal[sel]];
+  exportOut();
+}
+
 function buildGrid(){
   grid.innerHTML='';
-  cells=[];
-  raw.split('\n').forEach((line,y)=>{
+  raw.split('\n').forEach((line)=>{
     const row=document.createElement('div');
-    [...line].forEach((ch,x)=>{
+    row.style.display='flex';
+    [...line].forEach((ch)=>{
       const s=document.createElement('span');
       s.className='ch';
       s.textContent=ch===' ' ? '\u00A0' : ch;
       s.dataset.c = pal[0];
       s.style.color = colors[pal[0]];
-      s.onclick=()=>{
-        s.dataset.c = pal[sel];
-        s.style.color = colors[pal[sel]];
-        exportOut();
-      };
+      s.addEventListener('mousedown', (e)=>{ e.preventDefault(); isDragging=true; paint(s); });
+      s.addEventListener('mouseenter', ()=>{ if(isDragging) paint(s); });
+      s.addEventListener('mouseup', ()=>{ isDragging=false; });
+      // touch
+      s.addEventListener('touchstart', (e)=>{ e.preventDefault(); paint(s); }, {passive:false});
+      s.addEventListener('touchmove', (e)=>{
+        const t=document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+        if(t && t.classList.contains('ch')) paint(t);
+      }, {passive:false});
       row.appendChild(s);
-      cells.push(s);
     });
     grid.appendChild(row);
   });
+  // global mouse handlers for drag
+  document.addEventListener('mouseup', ()=> isDragging=false);
+  document.addEventListener('mouseleave', ()=> isDragging=false);
+  grid.addEventListener('mouseleave', ()=> isDragging=false);
+  // prevent text selection while dragging
+  grid.addEventListener('selectstart', e=> e.preventDefault());
   exportOut();
 }
 
 function exportOut(){
-  let res='';
-  let cur=null;
-  let lastLineHadContent=false;
   const rows = [...grid.children];
-  rows.forEach(row=>{
-    let line='';
-    let curC=null;
-    [...row.children].forEach(span=>{
-      const c = span.dataset.c;
-      const ch = span.textContent === '\u00A0' ? ' ' : span.textContent;
-      if(c!==curC){
-        line += `\${c${parseInt(c)%6+1}}`;
-        // map actual color index to c1..c6 via pal index
-        // find pal index of this color
-        let idx = pal.indexOf(parseInt(c));
-        if(idx===-1) idx=0;
-        line = line.slice(0, -(`\${c${curC}}`.length)) + `\${c${idx+1}}`;
-        curC=c;
-      }
-      line+=ch;
-    });
-    // simpler: rebuild per char with pal mapping
-  });
-  // rebuild properly char by char with pal mapping
   let outStr='';
   rows.forEach(row=>{
     let line='';
@@ -147,9 +188,9 @@ function exportOut(){
         line+=tag;
         curIdx=idx;
       }
-      line+= span.textContent==='\\u00A0'?' ':span.textContent;
+      const ch = span.textContent === '\u00A0' ? ' ' : span.textContent;
+      line+=ch;
     });
-    // rtrim trailing spaces but keep leading
     outStr+= line.replace(/\s+$/,'') + '\n';
   });
   outStr += '${c2}\n${c2}  Nexus Linux - Pure Arch\n${c2}  -----------------------\n';
@@ -157,8 +198,8 @@ function exportOut(){
   document.getElementById('dl').href = 'data:text/plain;charset=utf-8,'+encodeURIComponent(outStr);
 }
 
-document.getElementById('export').onclick=()=>{ out.select(); document.execCommand('copy'); alert('Kopyalandı! /usr/share/neofetch/ascii/distro/nexus içine yapıştır'); };
-document.getElementById('copyCfg').onclick=()=>{ navigator.clipboard.writeText(`ascii_colors=(${pal.join(' ')})`); alert('config satırı kopyalandı'); };
+document.getElementById('export').onclick=()=>{ out.select(); document.execCommand('copy'); out.setSelectionRange(0,0); const b=document.getElementById('export'); const t=b.textContent; b.textContent='✓ Kopyalandı!'; setTimeout(()=>b.textContent=t,1500); };
+document.getElementById('copyCfg').onclick=()=>{ navigator.clipboard.writeText(`ascii_colors=(${pal.join(' ')})`); const b=document.getElementById('copyCfg'); const t=b.textContent; b.textContent='✓ Kopyalandı!'; setTimeout(()=>b.textContent=t,1500); };
 document.getElementById('reset').onclick=()=>{ buildGrid(); };
 palInput.oninput=()=>{
   const v = palInput.value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)&&n>=0&&n<16);
