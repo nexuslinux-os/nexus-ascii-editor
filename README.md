@@ -14,7 +14,6 @@ python3 -m http.server 8000
 # or just open index.html
 ```
 
-
 **For Nexus Live ISO:** `archiso/airootfs/usr/share/neofetch/ascii/distro/nexus:1`
 
 Monorepo: https://github.com/nexuslinux-os/NexusLinux
